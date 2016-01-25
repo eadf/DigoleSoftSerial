@@ -4,8 +4,14 @@
 
 #include <inttypes.h>
 #include "Print.h"
-#include "../Wire/Wire.h"
+#if defined(_Digole_Serial_I2C_)
+#include <Wire.h>
+#endif
 #include "Arduino.h"
+#if defined(_Digole_SoftSerial_UART_)
+#include <SoftwareSerial.h>
+#endif
+
 // Communication set up command
 // Text function command
 // Graph function command
@@ -15,15 +21,45 @@
 #define _TEXT_ 0
 #define _GRAPH_ 1
 class Digole{
-public:
-
-	virtual size_t read1(void);
+  public:
+    virtual size_t read1(void);
 };
+
 class DigoleSerialDisp : public Print,public Digole {
 public:
 #if defined(_Digole_Serial_UART_)
 
     DigoleSerialDisp(HardwareSerial *s, unsigned long baud) //UART set up
+    {
+        _mySerial = s;
+        _Baud = baud;
+        _Comdelay = 2;
+    }
+
+    size_t write(uint8_t value) {
+        _mySerial->write((uint8_t) value);
+        return 1; // assume sucess
+    }
+
+    void begin(void) {
+        _mySerial->begin(9600);
+        _mySerial->print("SB");
+        _mySerial->println(_Baud);
+        delay(100);
+        _mySerial->begin(_Baud);
+    }
+	size_t read1(void)
+	{
+        int t;
+        do {
+            t = _mySerial->read();
+        } while (t == -1);
+        return t;
+	}
+#endif
+#if defined(_Digole_SoftSerial_UART_)
+
+    DigoleSerialDisp(SoftwareSerial *s, unsigned long baud) //UART set up
     {
         _mySerial = s;
         _Baud = baud;
@@ -433,9 +469,16 @@ _myWire->read();_myWire->read();
     }
 private:
     unsigned long _Baud;
+#if defined(_Digole_Serial_UART_)
     HardwareSerial *_mySerial;
+#endif
+#if defined(_Digole_SoftSerial_UART_)
+    SoftwareSerial *_mySerial;
+#endif
     uint8_t _I2Caddress;
+#if defined(_Digole_Serial_I2C_)
     TwoWire *_myWire;
+#endif
     uint8_t _Clockpin;
     uint8_t _Datapin;
     uint8_t _SSpin;
