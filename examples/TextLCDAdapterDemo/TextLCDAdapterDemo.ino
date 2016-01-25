@@ -12,6 +12,12 @@ NEW   6966  7566   6354
 #if defined(_Digole_Serial_UART_)
 DigoleSerialDisp mydisp(&Serial, 9600); //UART:Arduino UNO: Pin 1(TX)on arduino to RX on module
 #endif
+//--------Software Serial setup
+#if defined(_Digole_SoftSerial_UART_)
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(10, 11); // RX, TX
+DigoleSerialDisp mydisp(&mySerial, 9600); 
+#endif
 //--------I2C setup
 #if defined(_Digole_Serial_I2C_)
 #include <Wire.h>
